@@ -1,0 +1,2 @@
+# IA
+Artificial inteligent (DQL)
