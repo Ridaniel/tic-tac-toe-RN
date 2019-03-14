@@ -4,7 +4,7 @@ import torch
 import random
 import numpy as np
 from enviroment import enviroments
-from botIzi import bot
+from botIzi import Bot
 import copy
 
 
@@ -12,7 +12,7 @@ class SwallowQLearner(object):
     def __init__(self, obs_shape, action_shape, simbolo, MAX_NUM_EPISODES, STEPS_PER_EPISODE, learning_rate=0.01, gamma=0.98):
         self.obs_shape = obs_shape
         self.action_shape = action_shape
-        self.Q = NN(self.obs_shape, obs_shape+8, self.action_shape)
+        self.Q = NN(self.obs_shape, obs_shape+8, self.action_shape, 2)
         self.simbolo = simbolo
 
         self.learning_rate = learning_rate
@@ -60,7 +60,7 @@ class SwallowQLearner(object):
         """
         # En caso de que el juego termine se le da su recompensa según su resultado(Gano, Empato o Perdió)
         if next_obs.done is False:
-            temp = self.Q.next(next_obs, self.simbolo, simbol2, obs.widht)
+            temp = self.Q.next(next_obs, self.simbolo, simbol2)
         else:
             temp = next_obs.final(self.simbolo)
 
@@ -108,8 +108,9 @@ class SwallowQLearner(object):
 
     def exam(self, hight, widht):
         print("Exam")
+        # agente2=Bot(1,1)
         obs = enviroments(hight, widht)
-        for i in range(10):
+        for i in range(int(hight*widht/2)+1):
             if obs.done is True:
                 break
             action = self.get_action(obs)
@@ -119,7 +120,7 @@ class SwallowQLearner(object):
             print(obs.tablero)
             if obs.done is True:
                 break
-            action = int(input())
+            action = int(input())   
             # En caso de querer ver como juegan los bots
             #action = agente2.play(obs.tablero)
             next_obs = obs.update(action, 2)
@@ -135,10 +136,10 @@ def train(MAX_NUM_EPISODES, STEPS_PER_EPISODE, hight, widht):
     :hight:             Número de filas para el tablero del tic tac toe
     :widht:             Número de columnas para el tablero del tic tac toe
     """
-    
+
     agent = SwallowQLearner(hight*widht+1, hight*widht,
                             1, MAX_NUM_EPISODES, STEPS_PER_EPISODE)
-    agente2 = bot(2)
+    agente2 = Bot(2,1)
     # agent2 = SwallowQLearner(10, 9, 2)
     first_episode = True
     for episode in range(MAX_NUM_EPISODES):
@@ -155,12 +156,12 @@ def train(MAX_NUM_EPISODES, STEPS_PER_EPISODE, hight, widht):
 
                 if next_obs.done is False:
                     action2 = agente2.play(next_obs.tablero)
-                    next_obs = next_obs.update(action2, agente2.simbolo)
+                    next_obs = next_obs.update(action2, agente2.symbol)
                     if next_obs.done is True:
-                        total_reward+= next_obs.final(agent.simbolo)
+                        total_reward += next_obs.final(agent.simbolo)
                 else:
                     total_reward += next_obs.final(agent.simbolo)
-    
+
                 #agent.memory.store(Experience(obs, action, reward, next_obs, done))
                 agent.learn(obs, action, obs.reward, next_obs, 1)
                 total_reward += obs.reward
